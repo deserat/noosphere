@@ -638,13 +638,153 @@ async fn sync_item(item: &Item) -> Result<()> {
 
 ## Git Workflow
 
-### Branch Naming
+**Branching Model**: This project uses **Git-Flow** for branch management.
+
+### Git-Flow Overview
+
+Git-Flow is a branching model that provides a robust framework for managing larger projects:
 
 ```
+main (production-ready code, tagged releases)
+  │
+  └─── develop (integration branch for features)
+        │
+        ├─── feature/EPIC-1-1-repository-structure
+        ├─── feature/EPIC-2-1-database-setup
+        ├─── feature/add-authentication
+        │
+        ├─── release/v0.1.0 (release preparation)
+        │
+        └─── hotfix/critical-security-fix (emergency production fixes)
+```
+
+### Branch Types
+
+**main**:
+- Production-ready code only
+- Tagged with version numbers (v0.1.0, v1.0.0, etc.)
+- Protected branch (no direct commits)
+- Merge only from `release/*` or `hotfix/*` branches
+
+**develop**:
+- Integration branch for features
+- Always contains latest delivered development changes
+- Base branch for all feature development
+- Protected branch (requires PR review)
+
+**feature/***:
+- Branched from: `develop`
+- Merge back to: `develop`
+- Naming: `feature/EPIC-X-Y-description` or `feature/short-description`
+- Deleted after merge
+
+**release/***:
+- Branched from: `develop`
+- Merge to: `main` AND `develop`
+- Naming: `release/vX.Y.Z`
+- For release preparation (version bumps, final testing)
+
+**hotfix/***:
+- Branched from: `main`
+- Merge to: `main` AND `develop`
+- Naming: `hotfix/critical-issue-description`
+- For emergency production fixes only
+
+### Branch Naming Conventions
+
+```bash
+# Features (from develop)
 feature/EPIC-1-1-repository-structure
-fix/database-connection-timeout
-refactor/api-error-handling
-docs/update-setup-guide
+feature/EPIC-2-1-database-setup
+feature/add-user-authentication
+feature/implement-search
+
+# Releases (from develop)
+release/v0.1.0
+release/v1.0.0
+release/v1.1.0
+
+# Hotfixes (from main)
+hotfix/security-vulnerability-fix
+hotfix/critical-database-error
+
+# Supporting branches
+bugfix/fix-sync-race-condition    # Non-critical bugs (from develop)
+docs/update-setup-guide            # Documentation only (from develop)
+refactor/api-error-handling        # Refactoring (from develop)
+```
+
+### Git-Flow Commands
+
+**Starting a Feature**:
+```bash
+# Create feature branch from develop
+git checkout develop
+git pull origin develop
+git checkout -b feature/EPIC-1-2-dev-environments
+```
+
+**Finishing a Feature**:
+```bash
+# Merge feature back to develop
+git checkout develop
+git pull origin develop
+git merge --no-ff feature/EPIC-1-2-dev-environments
+git push origin develop
+git branch -d feature/EPIC-1-2-dev-environments
+```
+
+**Starting a Release**:
+```bash
+# Create release branch from develop
+git checkout develop
+git pull origin develop
+git checkout -b release/v0.1.0
+
+# Bump version, update changelog
+# Run final tests
+```
+
+**Finishing a Release**:
+```bash
+# Merge to main (production)
+git checkout main
+git pull origin main
+git merge --no-ff release/v0.1.0
+git tag -a v0.1.0 -m "Release v0.1.0"
+git push origin main --tags
+
+# Merge back to develop
+git checkout develop
+git merge --no-ff release/v0.1.0
+git push origin develop
+
+# Delete release branch
+git branch -d release/v0.1.0
+```
+
+**Hotfix Process**:
+```bash
+# Create hotfix from main
+git checkout main
+git pull origin main
+git checkout -b hotfix/critical-security-fix
+
+# Fix the issue, test
+
+# Merge to main
+git checkout main
+git merge --no-ff hotfix/critical-security-fix
+git tag -a v0.1.1 -m "Hotfix v0.1.1"
+git push origin main --tags
+
+# Merge to develop
+git checkout develop
+git merge --no-ff hotfix/critical-security-fix
+git push origin develop
+
+# Delete hotfix branch
+git branch -d hotfix/critical-security-fix
 ```
 
 ### Commit Messages

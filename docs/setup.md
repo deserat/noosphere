@@ -379,20 +379,37 @@ Once your environment is set up:
 
 ## Development Workflow
 
-### Starting Work
+### Git-Flow Branching Model
+
+**This project uses Git-Flow for branch management.**
+
+**Branch Structure**:
+- `main` - Production releases only (tagged with versions)
+- `develop` - Integration branch for all features
+- `feature/*` - Feature branches (from develop)
+- `release/*` - Release preparation (from develop)
+- `hotfix/*` - Emergency production fixes (from main)
+
+See [agents/standards.md](agents/standards.md#git-workflow) for complete git-flow documentation.
+
+### Starting Work on a Feature
 
 ```bash
-# 1. Pull latest changes
-git pull origin main
+# 1. Start from develop branch
+git checkout develop
+git pull origin develop
 
-# 2. Activate Python environment (if working on API)
+# 2. Create feature branch
+git checkout -b feature/EPIC-1-2-dev-environments
+
+# 3. Activate Python environment (if working on API)
 cd api-service
 source venv/bin/activate
 
-# 3. Run migrations (if database schema changed)
+# 4. Run migrations (if database schema changed)
 alembic upgrade head
 
-# 4. Start services
+# 5. Start services
 # Terminal 1: API Service
 python -m app.main
 
@@ -403,6 +420,29 @@ cargo run
 # Terminal 3: CLI (when implemented)
 cd cli
 cargo run
+```
+
+### Committing and Merging
+
+```bash
+# Make changes and commit regularly
+git add .
+git commit -m "feat(api): add health check endpoint"
+
+# Keep feature branch updated with develop
+git checkout develop
+git pull origin develop
+git checkout feature/EPIC-1-2-dev-environments
+git merge develop
+
+# When feature is complete, merge back to develop
+git checkout develop
+git pull origin develop
+git merge --no-ff feature/EPIC-1-2-dev-environments
+git push origin develop
+
+# Delete feature branch
+git branch -d feature/EPIC-1-2-dev-environments
 ```
 
 ### Running Tests Before Commit

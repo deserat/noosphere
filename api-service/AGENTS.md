@@ -549,6 +549,44 @@ pytest tests/api/test_items.py
 pytest tests/api/test_items.py::test_create_item
 ```
 
+### Git Workflow (Git-Flow)
+
+**This project uses Git-Flow branching model.**
+
+**Development Process**:
+```bash
+# Start new feature from develop
+git checkout develop
+git pull origin develop
+git checkout -b feature/EPIC-2-1-database-setup
+
+# Make changes, commit regularly
+git add .
+git commit -m "feat(db): add PostgreSQL configuration"
+
+# Keep feature branch updated
+git checkout develop
+git pull origin develop
+git checkout feature/EPIC-2-1-database-setup
+git merge develop
+
+# When complete, merge back to develop (via PR)
+git checkout develop
+git pull origin develop
+git merge --no-ff feature/EPIC-2-1-database-setup
+git push origin develop
+git branch -d feature/EPIC-2-1-database-setup
+```
+
+**Branch Types**:
+- `main` - Production releases only (tagged)
+- `develop` - Integration branch (base for features)
+- `feature/*` - Feature development (from develop)
+- `release/*` - Release preparation (from develop)
+- `hotfix/*` - Emergency fixes (from main)
+
+See [`docs/agents/standards.md`](../docs/agents/standards.md#git-workflow) for complete git-flow documentation.
+
 ## Common Tasks
 
 ### Adding New Endpoint

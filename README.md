@@ -238,6 +238,18 @@ alembic downgrade -1
 
 This is a personal project, but feedback and suggestions are welcome via GitHub issues.
 
+### Git Workflow
+
+This project uses **Git-Flow** branching model:
+
+- **main**: Production-ready code (tagged releases)
+- **develop**: Integration branch for features (base for all development)
+- **feature/**: Feature branches (from develop)
+- **release/**: Release preparation (from develop)
+- **hotfix/**: Emergency production fixes (from main)
+
+See [docs/agents/standards.md](docs/agents/standards.md#git-workflow) for complete git-flow documentation.
+
 ## License
 
 MIT License - See LICENSE file for details

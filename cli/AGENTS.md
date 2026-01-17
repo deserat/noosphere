@@ -608,6 +608,44 @@ cargo build --release
 cargo install --path .
 ```
 
+### Git Workflow (Git-Flow)
+
+**This project uses Git-Flow branching model.**
+
+**Development Process**:
+```bash
+# Start new feature from develop
+git checkout develop
+git pull origin develop
+git checkout -b feature/cli-capture-interface
+
+# Make changes, commit regularly
+git add .
+git commit -m "feat(cli): add quick capture view"
+
+# Keep feature branch updated
+git checkout develop
+git pull origin develop
+git checkout feature/cli-capture-interface
+git merge develop
+
+# When complete, merge back to develop (via PR)
+git checkout develop
+git pull origin develop
+git merge --no-ff feature/cli-capture-interface
+git push origin develop
+git branch -d feature/cli-capture-interface
+```
+
+**Branch Types**:
+- `main` - Production releases only (tagged)
+- `develop` - Integration branch (base for features)
+- `feature/*` - Feature development (from develop)
+- `release/*` - Release preparation (from develop)
+- `hotfix/*` - Emergency fixes (from main)
+
+See [`docs/agents/standards.md`](../docs/agents/standards.md#git-workflow) for complete git-flow documentation.
+
 ## Common Patterns
 
 ### Async Operations
