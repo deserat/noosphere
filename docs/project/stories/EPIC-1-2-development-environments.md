@@ -13,10 +13,14 @@ So that I can build, run, and test both the API service and client applications 
 ## Acceptance Criteria
 
 ### Python Environment (API Service)
+- [ ] uv package manager installed and verified:
+  ```bash
+  uv --version
+  ```
 - [ ] Python virtual environment created for api-service:
   ```bash
   cd api-service
-  python3 -m venv venv
+  uv venv
   ```
 - [ ] `requirements.txt` created with all necessary dependencies:
   - **Web Framework**: FastAPI, uvicorn
@@ -25,11 +29,12 @@ So that I can build, run, and test both the API service and client applications 
   - **Utilities**: python-dotenv, pydantic, pyyaml, watchdog
 - [ ] Dependencies installed successfully:
   ```bash
-  source venv/bin/activate
-  pip install -r requirements.txt
+  source .venv/bin/activate
+  uv sync
   ```
-- [ ] Python version documented (3.11+)
+- [ ] Python version documented (3.14+)
 - [ ] Virtual environment activation instructions in docs/setup.md
+- [ ] uv installation instructions in docs/setup.md
 
 ### Rust Environment (CLI + Sync Service)
 - [ ] Rust toolchain verified (1.70+ required):
@@ -139,7 +144,7 @@ So that I can build, run, and test both the API service and client applications 
   cargo --version
 
   # Check Python venv
-  which python  # Should point to venv
+  which python  # Should point to .venv
 
   # Check Rust compilation
   cd cli && cargo check && cd ..
@@ -149,10 +154,12 @@ So that I can build, run, and test both the API service and client applications 
 ## Technical Notes
 
 **Python Requirements Management**:
-- Use specific version ranges to ensure reproducibility
-- Example: `fastapi>=0.104.1,<0.105.0`
-- Consider using `pip freeze > requirements-lock.txt` for exact versions
-- Document Python 3.11+ requirement (for newer typing features)
+- Use `uv` package manager for fast, reliable dependency resolution
+- `uv sync` creates `uv.lock` file for reproducible dependency resolution
+- Use specific version ranges in `requirements.txt`: `fastapi>=0.104.1,<0.105.0`
+- `uv.lock` file should be committed to git for exact version reproducibility
+- Document Python 3.14+ requirement (latest stable with improved performance)
+- uv manages Python versions: `uv python install 3.14`
 
 **Rust Dependencies**:
 - Use `features = ["full"]` for tokio to enable all async features
@@ -314,17 +321,25 @@ These stubs allow the project to compile in Phase 1. Full implementation comes i
 **Python Environment Verification**:
 ```bash
 cd api-service
-source venv/bin/activate
+
+# Verify uv is installed
+uv --version
+# Should output uv version
+
+source .venv/bin/activate
 
 # Check Python version
 python --version
-# Should output: Python 3.11.x or higher
+# Should output: Python 3.14.x or higher
 
 # Verify all packages installed
-pip list | grep -E "fastapi|uvicorn|sqlalchemy|alembic|litellm"
+uv pip list | grep -E "fastapi|uvicorn|sqlalchemy|alembic|litellm"
 
 # Test imports
 python -c "import fastapi; import sqlalchemy; import litellm; print('All imports successful')"
+
+# Or use uv run (no activation needed)
+uv run python -c "import fastapi; import sqlalchemy; import litellm; print('All imports successful')"
 
 # Deactivate
 deactivate

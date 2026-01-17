@@ -23,9 +23,9 @@ This document defines coding standards and conventions for the Noosphere project
 
 ### Style Guide
 
-**Base**: Follow PEP 8 with modifications below.
+**Base**: Follow PEP 8 with ruff defaults.
 
-**Line Length**: 100 characters (not 79)
+**Line Length**: 88 characters (ruff default)
 
 **Imports**:
 ```python
@@ -983,20 +983,20 @@ api_key = "AIzaSyD..."
 
 ### Python Tools
 
-**Linting**: `ruff` (replaces flake8, pylint)
-**Type Checking**: `mypy`
-**Formatting**: `black` or `ruff format`
+**Package Management**: `uv` (package and version management)
+**Linting**: `ruff` (replaces flake8, pylint, isort)
+**Type Checking**: `pyright`
+**Formatting**: `ruff format`
 **Testing**: `pytest`
 
 **Configuration** (`pyproject.toml`):
 ```toml
 [tool.ruff]
-line-length = 100
-target-version = "py311"
+target-version = "py314"
 
-[tool.mypy]
-python_version = "3.11"
-strict = true
+[tool.pyright]
+pythonVersion = "3.14"
+typeCheckingMode = "strict"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -1017,7 +1017,8 @@ testpaths = ["tests"]
 # Python
 cd api-service
 ruff check .
-mypy .
+ruff format --check .
+pyright
 
 # Rust
 cd ../cli

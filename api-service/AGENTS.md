@@ -506,7 +506,7 @@ def test_create_item(db_session):
 cd api-service
 
 # Activate virtual environment
-source venv/bin/activate
+source .venv/bin/activate
 
 # Run migrations
 alembic upgrade head
@@ -516,6 +516,20 @@ python -m app.main
 
 # Or with uvicorn directly
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+**Alternative (using uv run, no activation needed)**:
+```bash
+cd api-service
+
+# Run migrations
+uv run alembic upgrade head
+
+# Start development server
+uv run python -m app.main
+
+# Or with uvicorn directly
+uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
 ### Creating Migrations
@@ -535,7 +549,10 @@ alembic downgrade -1
 
 ### Running Tests
 
+**Option 1: With activated venv**:
 ```bash
+source .venv/bin/activate
+
 # All tests
 pytest
 
@@ -547,6 +564,21 @@ pytest tests/api/test_items.py
 
 # Specific test
 pytest tests/api/test_items.py::test_create_item
+```
+
+**Option 2: Using uv run (recommended, no activation needed)**:
+```bash
+# All tests
+uv run pytest
+
+# With coverage
+uv run pytest --cov=app --cov-report=html
+
+# Specific test file
+uv run pytest tests/api/test_items.py
+
+# Specific test
+uv run pytest tests/api/test_items.py::test_create_item
 ```
 
 ### Git Workflow (Git-Flow)

@@ -8,9 +8,26 @@ Before you begin, ensure you have the following installed:
 
 ### Required Software
 
-- **Python 3.11+**: Backend API service
+- **Python 3.14+**: Backend API service
   ```bash
-  python3 --version  # Should be 3.11 or higher
+  python3 --version  # Should be 3.14 or higher
+  ```
+
+- **uv**: Python package manager (replaces pip/venv)
+  ```bash
+  # Install uv
+  # macOS/Linux:
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+
+  # Windows:
+  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+  # Or via package managers:
+  brew install uv           # macOS (Homebrew)
+  winget install astral-sh.uv  # Windows (WinGet)
+
+  # Verify installation
+  uv --version
   ```
 
 - **Rust 1.70+**: CLI and sync service
@@ -114,24 +131,29 @@ CREATE EXTENSION vector;
 ```bash
 cd api-service
 
-# Create virtual environment
-python3 -m venv venv
+# Create virtual environment (creates .venv/ directory)
+uv venv
 
 # Activate virtual environment
-source venv/bin/activate  # Linux/Mac
+source .venv/bin/activate  # Linux/Mac
 # OR
-venv\Scripts\activate     # Windows
+.venv\Scripts\activate     # Windows
 ```
 
 ### Install Dependencies
 
 ```bash
-# Install Python packages
-pip install -r requirements.txt
+# Install Python packages using uv
+uv sync
 
 # Verify installation
 python -c "import fastapi; import sqlalchemy; import litellm; print('✓ All Python packages installed')"
+
+# Or use uv run (no activation needed)
+uv run python -c "import fastapi; import sqlalchemy; import litellm; print('✓ All Python packages installed')"
 ```
+
+**Note**: `uv sync` creates a `uv.lock` file for reproducible dependency resolution. This lock file ensures all developers use identical package versions.
 
 ### Configure Environment Variables
 
@@ -281,9 +303,12 @@ cargo run
 ```bash
 # Python tests
 cd api-service
-source venv/bin/activate
+source .venv/bin/activate
 pytest
 deactivate
+
+# Or use uv run (no activation needed)
+uv run pytest
 
 # Rust tests
 cd ../cli
@@ -298,19 +323,22 @@ cargo test
 ### Linux
 
 - PostgreSQL typically runs on port 5432
-- Virtual environment activation: `source venv/bin/activate`
+- Virtual environment activation: `source .venv/bin/activate`
+- uv installation: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - Vault path: `~/noosphere-vault`
 
 ### macOS
 
 - PostgreSQL installed via Homebrew uses `/opt/homebrew/var/postgresql@14`
-- Virtual environment activation: `source venv/bin/activate`
+- Virtual environment activation: `source .venv/bin/activate`
+- uv installation: `brew install uv` (Homebrew) or `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - Vault path: `~/noosphere-vault`
 
 ### Windows
 
 - PostgreSQL runs as Windows service
-- Virtual environment activation: `venv\Scripts\activate`
+- Virtual environment activation: `.venv\Scripts\activate`
+- uv installation: `winget install astral-sh.uv` or PowerShell: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
 - Vault path: `%USERPROFILE%\noosphere-vault`
 
 ## Troubleshooting
@@ -334,10 +362,10 @@ psql -U noosphere_user -d noosphere -h localhost
 
 ```bash
 # Recreate virtual environment
-rm -rf venv
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+rm -rf .venv
+uv venv
+source .venv/bin/activate
+uv sync
 ```
 
 ### Rust Compilation Issues
@@ -404,7 +432,7 @@ git checkout -b feature/EPIC-1-2-dev-environments
 
 # 3. Activate Python environment (if working on API)
 cd api-service
-source venv/bin/activate
+source .venv/bin/activate
 
 # 4. Run migrations (if database schema changed)
 alembic upgrade head
@@ -450,9 +478,13 @@ git branch -d feature/EPIC-1-2-dev-environments
 ```bash
 # Python tests
 cd api-service
-source venv/bin/activate
+source .venv/bin/activate
 pytest
 deactivate
+
+# Or use uv run (recommended, no activation needed)
+cd api-service
+uv run pytest
 
 # Rust tests
 cd cli
@@ -465,11 +497,18 @@ cargo test
 ### Code Quality Checks
 
 ```bash
-# Python linting (when configured)
+# Python quality checks (when configured)
 cd api-service
-source venv/bin/activate
+source .venv/bin/activate
 ruff check .
-mypy .
+ruff format --check .
+pyright
+
+# Or use uv run (recommended, no activation needed)
+cd api-service
+uv run ruff check .
+uv run ruff format --check .
+uv run pyright
 
 # Rust formatting and linting
 cd cli

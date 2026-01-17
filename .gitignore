@@ -21,11 +21,11 @@ wheels/
 *.egg
 MANIFEST
 
-# Virtual Environment
+# Virtual Environments
 venv/
+.venv/
 env/
 ENV/
-.venv
 
 # Testing
 .pytest_cache/
@@ -78,6 +78,7 @@ Thumbs.db
 
 # Lock files (vault)
 *.lock
+!uv.lock  # Keep uv.lock for reproducible Python dependencies
 
 # Coverage reports
 .coverage.*

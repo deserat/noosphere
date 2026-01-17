@@ -81,9 +81,10 @@ Noosphere follows a clean client/server architecture with three main components:
 
 ### Prerequisites
 
-- Python 3.11+
+- Python 3.14+
 - Rust 1.70+
 - PostgreSQL 14+ with pgvector extension
+- uv (Python package manager)
 - AI API key (Gemini, OpenAI, or Anthropic)
 
 ### Installation
@@ -95,9 +96,9 @@ cd noosphere
 
 # Set up Python environment (API Service)
 cd api-service
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+uv venv
+source .venv/bin/activate
+uv sync
 alembic upgrade head
 cd ..
 
@@ -115,6 +116,8 @@ cp .env.example .env
 # Start services
 ./start.sh
 ```
+
+**Note**: See [docs/setup.md](docs/setup.md) for detailed setup instructions including uv installation.
 
 ### First Capture
 
