@@ -2,6 +2,24 @@
 
 This file provides context for AI coding assistants working on the Noosphere sync service. It defines service boundaries, responsibilities, and file synchronization patterns.
 
+## ⚠️ IMPORTANT: Context Isolation Protocol
+
+**ALWAYS read this file FIRST when working on sync-service tasks.** This prevents convention mixing between services.
+
+### Why This Matters
+- **Language**: This service uses **Rust**, not Python
+- **Architecture**: This service is **async background daemon**, not TUI or REST API
+- **Tooling**: Use `cargo clippy`, `cargo test`, **not** `ruff` or `pytest`
+- **File Structure**: `src/main.rs`, `src/watcher.rs` - **not** `app/` layout or Elm Architecture
+
+### Context Discipline
+1. **Read this file first** - Loads Rust/async daemon conventions into context
+2. **Scope all operations** - Use `path="sync-service/"` in Grep/Glob/Explore tools
+3. **No cross-service pollution** - Don't read `cli/` or `api-service/` files unless explicitly needed
+4. **Service switching** - When switching to another service, read its AGENTS.md first
+
+**If asked to work on Python/FastAPI or ratatui TUI code, you're in the wrong service. Read the appropriate AGENTS.md instead.**
+
 ## Service Overview
 
 **Purpose**: File watching service that synchronizes markdown vault with PostgreSQL database via API.

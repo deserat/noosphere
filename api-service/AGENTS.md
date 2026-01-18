@@ -2,6 +2,24 @@
 
 This file provides context for AI coding assistants working on the Noosphere API service. It defines service boundaries, responsibilities, patterns, and API contracts.
 
+## ⚠️ IMPORTANT: Context Isolation Protocol
+
+**ALWAYS read this file FIRST when working on API tasks.** This prevents convention mixing between services.
+
+### Why This Matters
+- **Language**: This service uses **Python 3.14**, not Rust
+- **Framework**: This service uses **FastAPI with app/ layout**, not Elm Architecture
+- **Tooling**: Use `ruff`, `pyright`, `pytest`, **not** `cargo clippy`
+- **File Structure**: `app/api/endpoints/`, `app/models/`, `app/services/` - **not** `src/main.rs`
+
+### Context Discipline
+1. **Read this file first** - Loads Python/FastAPI conventions into context
+2. **Scope all operations** - Use `path="api-service/"` in Grep/Glob/Explore tools
+3. **No cross-service pollution** - Don't read `cli/` or `sync-service/` files unless explicitly needed
+4. **Service switching** - When switching to another service, read its AGENTS.md first
+
+**If asked to work on Rust/ratatui code, you're in the wrong service. Read `cli/AGENTS.md` instead.**
+
 ## Service Overview
 
 **Purpose**: Backend API service providing REST endpoints, AI classification, and background scheduling.
