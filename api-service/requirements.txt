@@ -20,4 +20,6 @@ watchdog>=3.0.0,<4.0.0
 # Development (optional, but useful)
 pytest>=7.4.3,<8.0.0
 pytest-asyncio>=0.21.1,<0.22.0
+pytest-cov>=4.1.0,<5.0.0
 ruff>=0.1.6,<0.2.0
+pyright>=1.1.0,<2.0.0

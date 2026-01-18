@@ -1,4 +1,6 @@
-"""Database module."""
-from app.db.base import Base
+"""Database module.
 
-__all__ = ["Base"]
+Note: Base is not exported from this module to avoid circular imports.
+Import Base directly from app.db.base instead:
+    from app.db.base import Base
+"""
