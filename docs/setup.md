@@ -143,17 +143,17 @@ source .venv/bin/activate  # Linux/Mac
 ### Install Dependencies
 
 ```bash
-# Install Python packages using uv
-uv sync
+# Install Python packages from requirements.txt using uv
+uv pip install -r requirements.txt
 
 # Verify installation
-python -c "import fastapi; import sqlalchemy; import litellm; print('✓ All Python packages installed')"
+python -c "import fastapi; import sqlalchemy; import litellm; import pgvector; print('✓ All Python packages installed')"
 
 # Or use uv run (no activation needed)
-uv run python -c "import fastapi; import sqlalchemy; import litellm; print('✓ All Python packages installed')"
+uv run python -c "import fastapi; import sqlalchemy; import litellm; import pgvector; print('✓ All Python packages installed')"
 ```
 
-**Note**: `uv sync` creates a `uv.lock` file for reproducible dependency resolution. This lock file ensures all developers use identical package versions.
+**Note**: We use `requirements.txt` with version pinning (format: `>=X.Y.Z,<X.(Y+1).0`) to ensure stable, reproducible dependencies across all development environments.
 
 ### Configure Environment Variables
 
@@ -380,6 +380,17 @@ cargo clean
 # Rebuild
 cargo build
 ```
+
+**OpenSSL System Dependency Issues**:
+
+If you encounter OpenSSL-related errors during Rust compilation (common on Linux without `libssl-dev`), the project is already configured to use `rustls` (pure Rust TLS implementation) instead of native OpenSSL. This configuration is in both `cli/Cargo.toml` and `sync-service/Cargo.toml`:
+
+```toml
+# Uses rustls instead of native-tls to avoid OpenSSL system dependency
+reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-features = false }
+```
+
+If you still encounter TLS issues, verify that your Cargo.toml files have `default-features = false` to disable native-tls.
 
 ### Database Migration Issues
 
