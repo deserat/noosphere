@@ -1106,8 +1106,94 @@ pub fn handle_key_event(app: &mut App, key: KeyEvent) -> Result<()> {
 3. **Run Tests**: After each change
 4. **Commit Often**: Easy to revert if needed
 
+## GitHub Workflow
+
+### Issue Management
+
+**See**: [GitHub Workflow Guide](../github-workflow.md) for complete documentation.
+
+**Issue Naming**:
+- **Epics**: `EPIC-X: Descriptive epic name`
+  - Example: `EPIC-1: Foundation Phase - Repository and Infrastructure`
+- **Stories**: `Descriptive action-oriented title` (no EPIC prefix)
+  - Example: `Configure Python and Rust development environments`
+- **Bugs**: `Descriptive bug title`
+  - Example: `Classification returns null for empty content`
+- **Tasks**: `Descriptive task title`
+  - Example: `Add pyright configuration to api-service`
+
+**Required Labels**:
+1. **Type**: epic/story/task/bug/enhancement/docs/refactor
+2. **Priority**: P0 (critical) / P1 (core) / P2 (important) / P3 (nice-to-have)
+3. **Service**: api-service/cli/sync-service/database/vault/docs/infra
+
+**Optional Labels**:
+- **Size**: XS (1-2) / S (3) / M (5) / L (8) / XL (13 story points)
+- **Status**: ready/in-progress/in-review/blocked/needs-info
+- **Phase**: 1-foundation / 2-ai-classification / 3-surfacing / 4-polish
+
+### Pull Requests
+
+**Branch Naming** (Git-Flow):
+```bash
+feature/EPIC-X-Y-short-description  # Feature branches
+release/v0.1.0                       # Release branches
+hotfix/critical-bug-fix              # Hotfix branches
+```
+
+**PR Title**: Semantic description matching issue title
+- Example: `Configure Python and Rust development environments`
+
+**PR Description**:
+- **Required**: `Closes #[issue-number]`
+- Reference EPIC-X-Y
+- List key changes
+- Include verification steps
+- Check affected services
+
+**Commit Messages**:
+```bash
+git commit -m "feat(api): add health check endpoint
+
+Part of #12 (EPIC-5-1 story)
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+```
+
+**Format**:
+- **Type**: feat/fix/docs/refactor/test/chore
+- **Scope**: (api/cli/sync/db/vault/docs)
+- **Reference**: Part of #[issue-number]
+
+### Code Review Checklist
+
+Reviewers must verify:
+- [ ] Code follows standards (ruff/pyright for Python, clippy for Rust)
+- [ ] Tests added/updated and passing
+- [ ] Acceptance criteria from issue met
+- [ ] Documentation updated if needed
+- [ ] AGENTS.md updated if service boundaries changed
+- [ ] No breaking changes (or documented)
+- [ ] Verification steps from PR work
+
+### Merge Strategy
+
+**Always use `--no-ff`** (git-flow standard):
+```bash
+git checkout develop
+git merge --no-ff feature/EPIC-1-2-dev-environments
+git push origin develop
+```
+
+**After Merge**:
+1. Issue auto-closes (via "Closes #XX")
+2. Delete feature branch
+3. Verify acceptance criteria met
+4. Add verification comment to issue
+
 ## Resources
 
 - **Python**: [PEP 8](https://pep8.org), [FastAPI Docs](https://fastapi.tiangolo.com)
 - **Rust**: [Rust Book](https://doc.rust-lang.org/book/), [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/)
 - **Testing**: [pytest Docs](https://docs.pytest.org), [Rust Testing Guide](https://doc.rust-lang.org/book/ch11-00-testing.html)
+- **GitHub**: [GitHub Workflow Guide](../github-workflow.md), [Label Configuration](../../.github/LABELS.md)

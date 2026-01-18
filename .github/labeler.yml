@@ -1,0 +1,26 @@
+# Labeler configuration for automatic PR labeling based on file paths
+# See: https://github.com/actions/labeler
+
+service/api-service:
+  - api-service/**/*
+
+service/cli:
+  - cli/**/*
+
+service/sync-service:
+  - sync-service/**/*
+
+service/docs:
+  - docs/**/*
+  - README.md
+  - '*.md'
+
+service/database:
+  - api-service/migrations/**/*
+  - api-service/app/models/**/*
+  - api-service/app/db/**/*
+
+service/infra:
+  - .github/**/*
+  - .gitignore
+  - docker/**/*
