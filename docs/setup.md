@@ -89,9 +89,6 @@ docker exec -it noosphere-db psql -U noosphere_user -d noosphere -c "SELECT vers
 sudo apt update
 sudo apt install postgresql postgresql-contrib
 
-# Install pgvector
-sudo apt install postgresql-14-pgvector
-
 # Start PostgreSQL
 sudo systemctl start postgresql
 sudo systemctl enable postgresql
@@ -101,28 +98,77 @@ sudo systemctl enable postgresql
 
 ```bash
 # Install PostgreSQL
-brew install postgresql@14
-
-# Install pgvector
-brew install pgvector
+brew install postgresql@16
 
 # Start PostgreSQL
-brew services start postgresql@14
+brew services start postgresql@16
+```
+
+#### Build pgvector from Source (Required for PostgreSQL 16)
+
+**Important**: Homebrew's pgvector package only supports PostgreSQL 17/18. For PostgreSQL 16, you must build from source.
+
+```bash
+# Install build dependencies (if not already installed)
+# macOS: Xcode command line tools should be sufficient
+# Linux: sudo apt-get install build-essential postgresql-server-dev-16
+
+# Build pgvector
+cd /tmp
+git clone --branch v0.8.1 https://github.com/pgvector/pgvector.git
+cd pgvector
+make CC=gcc PG_CONFIG=$(which pg_config)
+make install CC=gcc PG_CONFIG=$(which pg_config)
+cd .. && rm -rf pgvector
+
+# Verify installation
+ls $(pg_config --pkglibdir)/vector.so
+ls $(pg_config --sharedir)/extension/vector*
+```
+
+**Troubleshooting pgvector build**:
+```bash
+# If gcc is not found, install build tools
+# macOS: xcode-select --install
+# Linux: sudo apt-get install build-essential
+
+# Verify pg_config path
+which pg_config
+pg_config --version
+
+# Use explicit PG_CONFIG path if needed
+make CC=gcc PG_CONFIG=/path/to/pg_config
 ```
 
 #### Create Database and User
 
 ```bash
-# Switch to postgres user
-sudo -u postgres psql
+# Use the setup script (recommended)
+cd api-service
+./scripts/setup_database.sh
 
-# In psql:
-CREATE USER noosphere_user WITH PASSWORD 'dev_password';
-CREATE DATABASE noosphere OWNER noosphere_user;
-\c noosphere
-CREATE EXTENSION vector;
-\q
+# Or manually:
+psql -U $(whoami) -c "CREATE DATABASE noosphere;"
+psql -U $(whoami) -c "CREATE USER noosphere_user WITH PASSWORD 'dev_password';"
+psql -U $(whoami) -c "GRANT ALL PRIVILEGES ON DATABASE noosphere TO noosphere_user;"
+psql -U $(whoami) -d noosphere -c "CREATE EXTENSION vector;"
+psql -U $(whoami) -d noosphere -c "GRANT ALL ON SCHEMA public TO noosphere_user;"
 ```
+
+#### Verify Database Setup
+
+```bash
+cd api-service
+
+# Run verification script
+./scripts/verify_database_setup.sh
+
+# Run connection tests
+source .venv/bin/activate
+python scripts/test_connection.py
+```
+
+**Expected Output**: All 7 verification checks pass ✅
 
 ## Step 3: Python Environment Setup
 
