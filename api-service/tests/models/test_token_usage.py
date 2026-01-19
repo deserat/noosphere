@@ -61,9 +61,9 @@ def test_token_usage_timestamp_auto(session, user):
     session.commit()
 
     assert usage.timestamp is not None
-    # Verify timestamp is recent (within last hour)
+    # Verify timestamp is recent (within last minute)
     now = datetime.now()
-    assert abs((usage.timestamp - now).total_seconds()) < 3600
+    assert abs((usage.timestamp - now).total_seconds()) < 60
 
 
 def test_token_usage_cascade_delete(session, user):

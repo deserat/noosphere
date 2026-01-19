@@ -52,9 +52,9 @@ def test_audit_log_timestamp_auto(session, user, item):
     session.commit()
 
     assert log.timestamp is not None
-    # Verify timestamp is recent (within last hour)
+    # Verify timestamp is recent (within last minute)
     now = datetime.now()
-    assert abs((log.timestamp - now).total_seconds()) < 3600
+    assert abs((log.timestamp - now).total_seconds()) < 60
 
 
 def test_audit_log_nullable_item(session, user):

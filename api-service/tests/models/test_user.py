@@ -97,6 +97,6 @@ def test_user_created_timestamp_auto(session):
     session.commit()
 
     assert user.created is not None
-    # Verify timestamp is recent (within last hour)
+    # Verify timestamp is recent (within last minute)
     now = datetime.now()
-    assert abs((user.created - now).total_seconds()) < 3600
+    assert abs((user.created - now).total_seconds()) < 60

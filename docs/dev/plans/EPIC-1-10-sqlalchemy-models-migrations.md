@@ -677,7 +677,7 @@ psql -U noosphere_user -d noosphere -c "\dt"
 ## Testing Strategy
 
 ### Unit Tests (models)
-**Location:** `api-service/tests/unit/models/`
+**Location:** `api-service/tests/models/`
 
 **Test files to create:**
 - `test_user.py` - User model instantiation, validation
@@ -710,13 +710,7 @@ def test_item_confidence_validation():
 ```
 
 ### Integration Tests (database)
-**Location:** `api-service/tests/integration/db/`
-
-**Test files to create:**
-- `test_schema.py` - Verify all tables, indexes, constraints exist
-- `test_vector_operations.py` - pgvector functionality
-- `test_relationships.py` - FK cascade behavior
-- `test_full_text_search.py` - tsvector trigger functionality
+**Note:** Integration tests are co-located with unit tests in `api-service/tests/models/` for convenience. Each model test file contains both unit tests (model instantiation, validation) and integration tests (database constraints, triggers, relationships).
 
 **Coverage target:** Critical paths covered
 

@@ -245,10 +245,10 @@ def test_item_timestamps(session, user):
 
     assert item.created is not None
     assert item.modified is not None
-    # Verify timestamps are recent (within last hour)
+    # Verify timestamps are recent (within last minute)
     now = datetime.now()
-    assert abs((item.created - now).total_seconds()) < 3600
-    assert abs((item.modified - now).total_seconds()) < 3600
+    assert abs((item.created - now).total_seconds()) < 60
+    assert abs((item.modified - now).total_seconds()) < 60
 
 
 def test_item_modified_auto_update(session, user):
