@@ -1,7 +1,7 @@
 """Tests for Item model."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 from sqlalchemy.exc import IntegrityError
@@ -172,7 +172,7 @@ def test_item_vector_embedding(session, user):
         title="Embedded Item",
         file_path="/embedded.md",
         embedding=embedding,
-        embedding_updated=datetime.utcnow(),
+        embedding_updated=datetime.now(timezone.utc),
         user_id=user.id,
         no_ai=False,
     )
@@ -246,7 +246,7 @@ def test_item_timestamps(session, user):
     assert item.created is not None
     assert item.modified is not None
     # Verify timestamps are recent (within last minute)
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     assert abs((item.created - now).total_seconds()) < 60
     assert abs((item.modified - now).total_seconds()) < 60
 

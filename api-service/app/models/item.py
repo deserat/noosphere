@@ -14,7 +14,7 @@ from enum import Enum as PyEnum
 from typing import Optional
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import ARRAY, CheckConstraint, Enum, ForeignKey, Index, String, func
+from sqlalchemy import ARRAY, CheckConstraint, DateTime, Enum, ForeignKey, Index, String, func
 from sqlalchemy.dialects.postgresql import TSVECTOR, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -88,27 +88,40 @@ class Item(Base):
 
     # ========== Timestamp Fields ==========
     created: Mapped[datetime] = mapped_column(
-        default=func.now(), nullable=False, comment="Creation timestamp"
+        DateTime(timezone=True),
+        default=func.now(),
+        server_default=func.now(),
+        nullable=False,
+        comment="Creation timestamp",
     )
 
     modified: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
         default=func.now(),
+        server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
         comment="Last modification timestamp",
     )
 
     last_worked: Mapped[Optional[datetime]] = mapped_column(
-        nullable=True, comment="Last time item was actively worked on"
+        DateTime(timezone=True),
+        nullable=True,
+        comment="Last time item was actively worked on",
     )
 
     categorized_at: Mapped[Optional[datetime]] = mapped_column(
-        nullable=True, comment="When item was last categorized"
+        DateTime(timezone=True),
+        nullable=True,
+        comment="When item was last categorized",
     )
 
     # ========== Surfacing Fields ==========
     next_surface: Mapped[Optional[datetime]] = mapped_column(
-        index=True, nullable=True, comment="When to surface this item next"
+        DateTime(timezone=True),
+        index=True,
+        nullable=True,
+        comment="When to surface this item next",
     )
 
     cadence: Mapped[Optional[str]] = mapped_column(
@@ -127,7 +140,9 @@ class Item(Base):
     )
 
     embedding_updated: Mapped[Optional[datetime]] = mapped_column(
-        nullable=True, comment="When embedding was last generated"
+        DateTime(timezone=True),
+        nullable=True,
+        comment="When embedding was last generated",
     )
 
     # ========== Sync Fields ==========

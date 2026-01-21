@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import func
+from sqlalchemy import DateTime, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -31,7 +31,11 @@ class User(Base):
     )
 
     created: Mapped[datetime] = mapped_column(
-        default=func.now(), nullable=False, comment="Account creation timestamp"
+        DateTime(timezone=True),
+        default=func.now(),
+        server_default=func.now(),
+        nullable=False,
+        comment="Account creation timestamp",
     )
 
     settings: Mapped[Optional[dict]] = mapped_column(

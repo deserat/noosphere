@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import CheckConstraint, ForeignKey, UniqueConstraint, func
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -56,7 +56,11 @@ class ItemLink(Base):
     )
 
     created: Mapped[datetime] = mapped_column(
-        default=func.now(), nullable=False, comment="When link was created"
+        DateTime(timezone=True),
+        default=func.now(),
+        server_default=func.now(),
+        nullable=False,
+        comment="When link was created",
     )
 
     __table_args__ = (

@@ -1,7 +1,7 @@
 """Tests for TokenUsage model."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
 from app.models.token_usage import TokenUsage
@@ -62,7 +62,7 @@ def test_token_usage_timestamp_auto(session, user):
 
     assert usage.timestamp is not None
     # Verify timestamp is recent (within last minute)
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     assert abs((usage.timestamp - now).total_seconds()) < 60
 
 

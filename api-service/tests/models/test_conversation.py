@@ -1,7 +1,7 @@
 """Tests for Conversation model."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.models.conversation import Conversation
 
@@ -45,7 +45,7 @@ def test_conversation_rrd_fields(session, user, item):
 
 def test_conversation_session_timestamps(session, user, item):
     """Test session start and end timestamps."""
-    start_time = datetime.utcnow()
+    start_time = datetime.now(timezone.utc)
     conv = Conversation(
         item_id=item.id,
         user_id=user.id,
@@ -58,7 +58,7 @@ def test_conversation_session_timestamps(session, user, item):
     assert conv.session_end is None
 
     # Update with end time
-    end_time = datetime.utcnow()
+    end_time = datetime.now(timezone.utc)
     conv.session_end = end_time
     session.commit()
 

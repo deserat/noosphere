@@ -13,7 +13,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import ForeignKey, func
+from sqlalchemy import DateTime, ForeignKey, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -49,14 +49,18 @@ class Conversation(Base):
     )
 
     session_start: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
         default=func.now(),
+        server_default=func.now(),
         nullable=False,
         index=True,
         comment="When conversation session started",
     )
 
     session_end: Mapped[Optional[datetime]] = mapped_column(
-        nullable=True, comment="When conversation session ended"
+        DateTime(timezone=True),
+        nullable=True,
+        comment="When conversation session ended",
     )
 
     # ========== RRD Pattern Fields ==========
@@ -82,7 +86,9 @@ class Conversation(Base):
     )
 
     last_summarized: Mapped[Optional[datetime]] = mapped_column(
-        nullable=True, comment="When last reduction/summarization occurred"
+        DateTime(timezone=True),
+        nullable=True,
+        comment="When last reduction/summarization occurred",
     )
 
     changes_made: Mapped[Optional[dict]] = mapped_column(

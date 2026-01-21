@@ -5,8 +5,9 @@ Provides usage analytics and cost tracking for AI operations.
 """
 import uuid
 from datetime import datetime
+from decimal import Decimal
 
-from sqlalchemy import ForeignKey, Numeric, func
+from sqlalchemy import DateTime, ForeignKey, Numeric, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -49,14 +50,16 @@ class TokenUsage(Base):
         nullable=False, comment="Number of output tokens generated"
     )
 
-    cost_usd: Mapped[float] = mapped_column(
+    cost_usd: Mapped[Decimal] = mapped_column(
         Numeric(10, 6),  # Up to $9999.999999 with 6 decimal precision
         nullable=False,
         comment="Cost in USD (precise to 6 decimals)",
     )
 
     timestamp: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
         default=func.now(),
+        server_default=func.now(),
         nullable=False,
         index=True,
         comment="When the operation occurred",

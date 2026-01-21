@@ -1,7 +1,7 @@
 """Tests for AuditLog model."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.models.audit_log import AuditLog
 
@@ -53,7 +53,7 @@ def test_audit_log_timestamp_auto(session, user, item):
 
     assert log.timestamp is not None
     # Verify timestamp is recent (within last minute)
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     assert abs((log.timestamp - now).total_seconds()) < 60
 
 

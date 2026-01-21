@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import ForeignKey, func
+from sqlalchemy import DateTime, ForeignKey, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -57,7 +57,12 @@ class AuditLog(Base):
     )
 
     timestamp: Mapped[datetime] = mapped_column(
-        default=func.now(), nullable=False, index=True, comment="When action occurred"
+        DateTime(timezone=True),
+        default=func.now(),
+        server_default=func.now(),
+        nullable=False,
+        index=True,
+        comment="When action occurred",
     )
 
     def __repr__(self) -> str:

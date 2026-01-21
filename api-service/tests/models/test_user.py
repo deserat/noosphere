@@ -1,7 +1,7 @@
 """Tests for User model."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 from sqlalchemy.exc import IntegrityError
@@ -98,5 +98,5 @@ def test_user_created_timestamp_auto(session):
 
     assert user.created is not None
     # Verify timestamp is recent (within last minute)
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     assert abs((user.created - now).total_seconds()) < 60
