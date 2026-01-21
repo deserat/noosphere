@@ -12,7 +12,10 @@ import os
 load_dotenv()
 
 # Import Base for autogenerate support
-from app.db.base import Base
+from app.db.base import Base, _import_models  # noqa: E402
+
+# Import all models for autogenerate support
+_import_models()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -69,8 +72,12 @@ def run_migrations_online() -> None:
 
     """
     # Get DATABASE_URL from environment and set it in config
+    database_url = os.getenv("DATABASE_URL")
+    if not database_url:
+        raise ValueError("DATABASE_URL environment variable not set")
+
     configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = os.getenv("DATABASE_URL")
+    configuration["sqlalchemy.url"] = database_url
 
     connectable = engine_from_config(
         configuration,
@@ -79,9 +86,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
