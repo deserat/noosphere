@@ -53,7 +53,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "created",
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             nullable=False,
             comment="Prompt creation timestamp",
         ),
@@ -68,7 +68,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "created",
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             nullable=False,
             comment="Account creation timestamp",
         ),
@@ -120,29 +120,29 @@ def upgrade() -> None:
             comment="Current workflow state",
         ),
         sa.Column(
-            "created", sa.DateTime(), nullable=False, comment="Creation timestamp"
+            "created", sa.DateTime(timezone=True), nullable=False, comment="Creation timestamp"
         ),
         sa.Column(
             "modified",
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             nullable=False,
             comment="Last modification timestamp",
         ),
         sa.Column(
             "last_worked",
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             nullable=True,
             comment="Last time item was actively worked on",
         ),
         sa.Column(
             "categorized_at",
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             nullable=True,
             comment="When item was last categorized",
         ),
         sa.Column(
             "next_surface",
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             nullable=True,
             comment="When to surface this item next",
         ),
@@ -166,7 +166,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "embedding_updated",
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             nullable=True,
             comment="When embedding was last generated",
         ),
@@ -251,7 +251,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "timestamp",
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             nullable=False,
             comment="When the operation occurred",
         ),
@@ -323,7 +323,7 @@ def upgrade() -> None:
             comment="State after change",
         ),
         sa.Column(
-            "timestamp", sa.DateTime(), nullable=False, comment="When action occurred"
+            "timestamp", sa.DateTime(timezone=True), nullable=False, comment="When action occurred"
         ),
         sa.ForeignKeyConstraint(["item_id"], ["items.id"], ondelete="SET NULL"),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
@@ -354,13 +354,13 @@ def upgrade() -> None:
         ),
         sa.Column(
             "session_start",
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             nullable=False,
             comment="When conversation session started",
         ),
         sa.Column(
             "session_end",
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             nullable=True,
             comment="When conversation session ended",
         ),
@@ -396,7 +396,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "last_summarized",
-            sa.DateTime(),
+            sa.DateTime(timezone=True),
             nullable=True,
             comment="When last reduction/summarization occurred",
         ),
@@ -456,7 +456,7 @@ def upgrade() -> None:
             comment="AI confidence in this relationship (0.0-1.0)",
         ),
         sa.Column(
-            "created", sa.DateTime(), nullable=False, comment="When link was created"
+            "created", sa.DateTime(timezone=True), nullable=False, comment="When link was created"
         ),
         sa.CheckConstraint(
             "from_item_id != to_item_id", name="ck_item_link_no_self_links"

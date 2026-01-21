@@ -266,11 +266,12 @@ def test_item_modified_auto_update(session, user):
 
     original_modified = item.modified
 
-    # Small delay to ensure different timestamp
-    time.sleep(0.01)
+    # Delay to ensure different timestamp
+    time.sleep(1)
 
     # Update the item
     item.title = "Updated Title"
+    session.flush()  # Ensure the update is sent to database
     session.commit()
     session.refresh(item)
 
