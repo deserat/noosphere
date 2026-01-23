@@ -1,0 +1,27 @@
+# User-specific configuration
+# Contains user paths and settings - do not commit
+config.yaml
+
+# Keep example template tracked in git
+!config.example.yaml
+
+# Build artifacts
+/target/
+
+# Backup files
+*~
+*.swp
+*.swo
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# Log files
+logs/
+*.log
+
+# Local environment variables
+.env
+.env.local

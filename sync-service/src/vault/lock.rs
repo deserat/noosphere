@@ -20,7 +20,7 @@ use std::time::{Duration, SystemTime};
 /// use std::time::Duration;
 ///
 /// let file_path = Path::new("/tmp/test.md");
-/// let mut lock = FileLock::new(file_path);
+/// let mut lock = FileLock::new(file_path)?;
 ///
 /// // Acquire lock with 5-second timeout
 /// lock.acquire(Duration::from_secs(5))?;
