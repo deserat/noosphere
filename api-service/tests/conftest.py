@@ -2,7 +2,6 @@
 
 import os
 import pytest
-from datetime import timezone
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -16,7 +15,10 @@ _import_models()
 @pytest.fixture(scope="session")
 def database_url():
     """Get database URL from environment or use test database."""
-    return os.getenv("TEST_DATABASE_URL", "postgresql://noosphere_user:dev_password@localhost:5432/noosphere_test")
+    return os.getenv(
+        "TEST_DATABASE_URL",
+        "postgresql://noosphere_user:dev_password@localhost:5432/noosphere_test",
+    )
 
 
 @pytest.fixture(scope="session")

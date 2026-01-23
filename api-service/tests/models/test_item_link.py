@@ -92,20 +92,14 @@ def test_item_link_different_types_allowed(session, user, item):
     session.add(item2)
     session.commit()
 
-    link1 = ItemLink(
-        from_item_id=item.id, to_item_id=item2.id, link_type="related"
-    )
-    link2 = ItemLink(
-        from_item_id=item.id, to_item_id=item2.id, link_type="references"
-    )
+    link1 = ItemLink(from_item_id=item.id, to_item_id=item2.id, link_type="related")
+    link2 = ItemLink(from_item_id=item.id, to_item_id=item2.id, link_type="references")
     session.add_all([link1, link2])
     session.commit()
 
     links = (
         session.query(ItemLink)
-        .filter(
-            ItemLink.from_item_id == item.id, ItemLink.to_item_id == item2.id
-        )
+        .filter(ItemLink.from_item_id == item.id, ItemLink.to_item_id == item2.id)
         .all()
     )
     assert len(links) == 2
