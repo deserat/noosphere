@@ -1,8 +1,6 @@
 """Tests for seed data script."""
 
-import pytest
-
-from app.models.item import Item
+from app.models.item import EMBEDDING_DIMENSION, Item
 from app.models.prompt import Prompt
 from app.models.user import User
 from migrations.seed_data import seed_database
@@ -62,11 +60,15 @@ def test_seed_data_skips_existing_user(session):
     """Test that existing user is not duplicated."""
     # First run - should create user
     seed_database(session)
-    first_user_count = session.query(User).filter(User.email == "dev@noosphere.local").count()
+    first_user_count = (
+        session.query(User).filter(User.email == "dev@noosphere.local").count()
+    )
 
     # Second run - should not create duplicate
     seed_database(session)
-    second_user_count = session.query(User).filter(User.email == "dev@noosphere.local").count()
+    second_user_count = (
+        session.query(User).filter(User.email == "dev@noosphere.local").count()
+    )
 
     assert first_user_count == 1
     assert second_user_count == 1
@@ -98,11 +100,15 @@ def test_seed_data_skips_existing_items(session):
     """Test that existing items are not duplicated."""
     # First run - should create items
     seed_database(session)
-    first_item_count = session.query(Item).filter(Item.file_path == "/admin/setup.md").count()
+    first_item_count = (
+        session.query(Item).filter(Item.file_path == "/admin/setup.md").count()
+    )
 
     # Second run - should not create duplicates
     seed_database(session)
-    second_item_count = session.query(Item).filter(Item.file_path == "/admin/setup.md").count()
+    second_item_count = (
+        session.query(Item).filter(Item.file_path == "/admin/setup.md").count()
+    )
 
     assert first_item_count == 1
     assert second_item_count == 1
@@ -115,22 +121,4 @@ def test_seed_data_embeddings(session):
     items = session.query(Item).all()
     for item in items:
         if item.embedding is not None:
-            assert len(item.embedding) == 1536  # OpenAI embedding dimension
-
-
-def test_seed_data_handles_errors_gracefully(session):
-    """Test that seed_database handles database errors gracefully."""
-    # This test verifies that seed_database doesn't crash on errors
-    # In a real scenario, integrity errors are handled by the idempotency checks
-    # We just verify the function completes without leaving partial data
-
-    # Run seed twice - second run should gracefully skip existing data
-    seed_database(session)
-    user_count_first = session.query(User).count()
-
-    seed_database(session)
-    user_count_second = session.query(User).count()
-
-    # Counts should be the same (no duplicates)
-    assert user_count_first == user_count_second
-    assert user_count_first > 0  # At least the dev user exists
+            assert len(item.embedding) == EMBEDDING_DIMENSION

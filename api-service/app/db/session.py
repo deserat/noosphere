@@ -5,17 +5,18 @@ Provides connection pooling, session factory, context manager,
 health checks, and retry logic for database operations.
 """
 
+import logging
 import os
 from contextlib import contextmanager
 from typing import Generator
 
-from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import QueuePool
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-load_dotenv()
+logger = logging.getLogger(__name__)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
@@ -84,7 +85,8 @@ def check_database_health() -> bool:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
         return True
-    except Exception:
+    except OperationalError as e:
+        logger.warning(f"Database health check failed: {e}")
         return False
 
 
@@ -98,8 +100,8 @@ def connect_with_retry() -> None:
 
     Retries up to 3 times with exponential backoff:
     - Attempt 1: Immediate
-    - Attempt 2: Wait 1-2 seconds
-    - Attempt 3: Wait 2-4 seconds
+    - Attempt 2: Wait 1 second (min threshold)
+    - Attempt 3: Wait 2 seconds
 
     Raises:
         Exception: If all retry attempts fail

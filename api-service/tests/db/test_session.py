@@ -1,5 +1,6 @@
 """Tests for database session module."""
 
+import uuid
 from unittest.mock import Mock, patch
 
 import pytest
@@ -32,8 +33,6 @@ def test_session_factory():
 
 def test_get_db_session_success(session):
     """Test context manager commits on success."""
-    import uuid
-
     unique_email = f"test-{uuid.uuid4()}@example.com"
 
     with get_db_session() as db_session:
@@ -63,17 +62,28 @@ def test_get_db_session_rollback():
 
 def test_get_db_session_always_closes():
     """Test that session is always closed."""
-    from sqlalchemy.exc import InvalidRequestError
+    # Mock the close method to verify it gets called
+    with patch("app.db.session.SessionLocal") as mock_session_factory:
+        mock_session = Mock()
+        mock_session_factory.return_value = mock_session
 
-    db_session_obj = None
+        # Successful case - should call commit and close
+        with get_db_session():
+            pass
 
-    with get_db_session() as db_session:
-        db_session_obj = db_session
+        mock_session.commit.assert_called_once()
+        mock_session.close.assert_called_once()
 
-    # Session should be closed after exiting context
-    # Verify by trying to execute a query, which should fail
-    with pytest.raises((InvalidRequestError, Exception)):
-        db_session_obj.execute(text("SELECT 1"))
+        # Reset mocks
+        mock_session.reset_mock()
+
+        # Error case - should call rollback and close
+        with pytest.raises(ValueError):
+            with get_db_session():
+                raise ValueError("Test error")
+
+        mock_session.rollback.assert_called_once()
+        mock_session.close.assert_called_once()
 
 
 def test_check_database_health_success():

@@ -97,7 +97,9 @@ def test_conversation_cascade_delete_item(session, user, item):
     session.commit()
 
     # Conversation should be deleted
-    deleted_conv = session.query(Conversation).filter(Conversation.id == conv_id).first()
+    deleted_conv = (
+        session.query(Conversation).filter(Conversation.id == conv_id).first()
+    )
     assert deleted_conv is None
 
 
@@ -114,7 +116,9 @@ def test_conversation_cascade_delete_user(session, user, item):
     session.commit()
 
     # Conversation should be deleted
-    deleted_conv = session.query(Conversation).filter(Conversation.id == conv_id).first()
+    deleted_conv = (
+        session.query(Conversation).filter(Conversation.id == conv_id).first()
+    )
     assert deleted_conv is None
 
 

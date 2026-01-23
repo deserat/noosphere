@@ -7,18 +7,16 @@ Creates:
 - Sample items across all categories
 
 Idempotent: Safe to run multiple times.
+
+Usage:
+    cd api-service
+    python -m migrations.seed_data
 """
 
-import sys
-from pathlib import Path
-
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from app.db.session import SessionLocal  # noqa: E402
-from app.models.item import Item, ItemState  # noqa: E402
-from app.models.prompt import Prompt  # noqa: E402
-from app.models.user import User  # noqa: E402
+from app.db.session import SessionLocal
+from app.models.item import EMBEDDING_DIMENSION, Item, ItemState
+from app.models.prompt import Prompt
+from app.models.user import User
 
 
 def seed_database(session=None) -> None:
@@ -129,7 +127,7 @@ Analyze the item and provide:
             if not existing:
                 item = Item(
                     user_id=user.id,
-                    embedding=[0.0] * 1536,  # Placeholder embedding
+                    embedding=[0.0] * EMBEDDING_DIMENSION,  # Placeholder embedding
                     no_ai=False,
                     **item_data,
                 )

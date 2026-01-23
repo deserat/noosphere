@@ -76,9 +76,7 @@ def test_prompt_same_name_different_version(session):
 
 def test_prompt_repr(session):
     """Test Prompt __repr__ method."""
-    prompt = Prompt(
-        name="test", version="v1.0", content="Test content", active=True
-    )
+    prompt = Prompt(name="test", version="v1.0", content="Test content", active=True)
     session.add(prompt)
     session.commit()
 

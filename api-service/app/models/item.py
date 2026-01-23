@@ -14,11 +14,23 @@ from enum import Enum as PyEnum
 from typing import Optional
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import ARRAY, CheckConstraint, DateTime, Enum, ForeignKey, Index, String, func
+from sqlalchemy import (
+    ARRAY,
+    CheckConstraint,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    String,
+    func,
+)
 from sqlalchemy.dialects.postgresql import TSVECTOR, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
+
+# OpenAI text-embedding-ada-002 dimension
+EMBEDDING_DIMENSION = 1536
 
 
 class ItemState(str, PyEnum):
@@ -134,9 +146,9 @@ class Item(Base):
     )
 
     embedding: Mapped[Optional[Vector]] = mapped_column(
-        Vector(1536),  # OpenAI text-embedding-ada-002 dimensions
+        Vector(EMBEDDING_DIMENSION),
         nullable=True,
-        comment="Vector embedding for similarity search (1536 dimensions)",
+        comment=f"Vector embedding for similarity search ({EMBEDDING_DIMENSION} dimensions)",
     )
 
     embedding_updated: Mapped[Optional[datetime]] = mapped_column(
