@@ -21,25 +21,26 @@
 │  - REST endpoints (capture, triage, review)            │
 │  - WebSocket endpoints (chat, work)                    │
 │  - LiteLLM integration                                 │
-│  - File operations (with lock files)                   │
 │  - Scheduler (digest, surfacing) - integrated          │
-└────────┬───────────────────────────┬────────────────────┘
-         │ read/write                │ read/write
-         ▼                           ▼
+└────────┬────────────────────────────────────────────────┘
+         │ read/write (DATABASE ONLY)
+         ▼
 ┌─────────────────────┐     ┌────────────────────────────┐
 │ PostgreSQL+pgvector │     │ File Vault                 │
 │  - Items            │     │  ~/noosphere-vault/        │
-│  - Links            │◄────│  - Markdown files          │
+│  - Links            │     │  - Markdown files          │
 │  - Conversations    │     │  - Category folders        │
 │  - Audit log        │     │  - Frontmatter metadata    │
 └─────────────────────┘     └────────┬───────────────────┘
-         ▲                           │ watches
+         ▲                           │ read/write/watch
          │                           ▼
          │                  ┌────────────────────────────┐
          │                  │ Sync Service (Rust)        │
          │                  │  - File watcher (notify)   │
-         │                  │  - HTTP client (reqwest)   │
-         └──────────────────│  - Sends raw files to API  │
+         │                  │  - File parser (frontmatter│
+         └─────────────────│  - File writer (markdown)  │
+                  HTTP      │  - File locking (fs2)      │
+                            │  - HTTP client (reqwest)   │
                             └────────────────────────────┘
 ```
 
@@ -49,20 +50,22 @@
 - HTTP REST API for all operations
 - WebSocket for conversational interfaces (chat, editing)
 - AI operations: classification, embeddings, conversation, summarization
-- File system operations (create, update, move files with locks)
 - All database operations (owns SQLAlchemy models)
-- All file parsing (markdown + frontmatter)
 - Scheduler background task (digest generation, surfacing calculations)
+- Receives parsed item data from sync-service via REST API
+- NO file system access - stateless server
 - Runs on localhost only (no auth for MVP)
 - Port: 8000 (configurable)
 
 **2. Sync Service** (Rust) - LOCAL CLIENT
 - File watcher (notify crate)
 - Detects file changes (create, modify, delete, move)
-- Reads raw file contents
-- Sends raw contents to API via HTTP (POST /api/sync/file-changed)
-- NO database access
-- NO file parsing (API's responsibility)
+- Reads and parses markdown files with YAML frontmatter
+- Writes markdown files to vault (atomic operations)
+- File locking mechanism (prevents concurrent writes)
+- Computes content hashes (SHA-256) for change detection
+- Syncs vault ↔ API server via HTTP
+- NO database access (API owns database)
 - Runs continuously in background
 
 **3. CLI** (Rust) - CLIENT
@@ -73,8 +76,9 @@
 
 ### Architecture Principles
 - **Clean client/server separation**: No shared code between services
-- **API owns all logic**: Parsing, validation, database operations
-- **Sync sends raw data**: API does all processing
+- **Vault operations in Rust only**: sync-service and cli touch ~/noosphere-vault/
+- **API is stateless**: Database operations only, NO filesystem access
+- **Sync-service is the translator**: Vault ↔ API communication via HTTP
 - **Stateless services**: Coordinate via PostgreSQL and HTTP
 - **Future-ready**: Clean separation enables cloud migration
 
@@ -156,30 +160,38 @@ WS     /api/work/{item_id}       # Work on item (editing mode)
 
 ### File Operations Safety
 
-**Lock Files:**
-```python
-# Pseudo-code for API service file write
-def write_item(item_id, content):
-    file_path = get_file_path(item_id)
-    lock_path = f"{file_path}.lock"
+**Lock Files (Rust - sync-service):**
+```rust
+// Pseudo-code for sync-service file write
+use fs2::FileExt;
+use std::fs::{File, rename};
+use std::io::Write;
 
-    # Acquire lock (wait if locked by sync)
-    with FileLock(lock_path, timeout=5):
-        # Write to temp file
-        temp_path = f"{file_path}.tmp"
-        with open(temp_path, 'w') as f:
-            f.write(frontmatter + "\n\n" + content)
+fn write_item(file_path: &Path, frontmatter: &str, content: &str) -> Result<()> {
+    let lock_path = file_path.with_extension("lock");
 
-        # Atomic rename
-        os.rename(temp_path, file_path)
+    // Acquire lock (wait if locked)
+    let lock_file = File::create(&lock_path)?;
+    lock_file.lock_exclusive()?;
 
-    # Sync service will detect change and update DB
+    // Write to temp file
+    let temp_path = file_path.with_extension("tmp");
+    let mut temp_file = File::create(&temp_path)?;
+    write!(temp_file, "{}\n\n{}", frontmatter, content)?;
+    temp_file.sync_all()?;
+
+    // Atomic rename
+    rename(temp_path, file_path)?;
+
+    // Release lock (auto on drop)
+    Ok(())
+}
 ```
 
 **Atomic Operations:**
 - Write to `.tmp` file
 - Atomic rename (POSIX guarantees atomicity)
-- Lock file prevents concurrent writes
+- Lock file prevents concurrent writes (between sync-service and cli)
 
 ### Conflict Resolution
 
@@ -245,7 +257,7 @@ impl SyncService {
                 continue;
             }
 
-            // Read raw file contents
+            // Read file contents
             let content = match fs::read_to_string(&path).await {
                 Ok(c) => c,
                 Err(e) => {
@@ -254,12 +266,13 @@ impl SyncService {
                 }
             };
 
-            // Compute content hash
+            // Parse frontmatter and compute content hash
+            // (parsing code omitted for brevity)
             let mut hasher = Sha256::new();
             hasher.update(content.as_bytes());
             let hash = format!("{:x}", hasher.finalize());
 
-            // Send raw contents to API
+            // Send parsed item data to API
             let response = self.client
                 .post(format!("{}/api/sync/file-changed", self.api_url))
                 .json(&serde_json::json!({
@@ -423,6 +436,12 @@ noosphere/
       main.rs               # Entry point
       watcher.rs            # File watcher (notify)
       client.rs             # HTTP client for API
+      vault/                # Vault filesystem operations
+        parser.rs           # Markdown + frontmatter parser
+        writer.rs           # Markdown file writer
+        lock.rs             # File locking (fs2)
+        template.rs         # Markdown templates
+        hash.rs             # Content hashing (SHA-256)
       config.rs             # Config loader
     Cargo.toml
     tests/
@@ -446,11 +465,6 @@ noosphere/
         digest.py           # Digest generation
         surfacing.py        # Calculate next_surface dates
         tasks.py            # Periodic tasks
-      vault/                # File operations
-        parser.py           # Markdown parser
-        writer.py           # Markdown writer
-        lock.py             # Lock file management
-        template.py         # File templates
       models/               # SQLAlchemy models
         __init__.py
         item.py
@@ -494,8 +508,8 @@ noosphere/
 **Key architecture decisions:**
 - **No shared/ directory**: Clean client/server separation
 - **Scheduler integrated**: Part of api-service, not separate
-- **Sync-service in Rust**: Sends raw files to API via HTTP
-- **API owns all logic**: Parsing, validation, DB operations
+- **Vault operations in Rust only**: sync-service owns file parsing/writing
+- **API is stateless**: Database and AI operations only, NO filesystem access
 - **Each service has own tests**: No cross-service dependencies
 
 ## Configuration Management

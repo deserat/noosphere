@@ -39,14 +39,21 @@ This file provides context for AI coding assistants working on the Noosphere syn
 
 ### Responsibilities
 
+**⚠️ CRITICAL: Vault Filesystem Ownership**
+
+This service is the **ONLY** service that touches `~/noosphere-vault/` filesystem. The API service (Python) NEVER accesses vault files directly - it only operates on the PostgreSQL database. This service is the translator between the file-based vault and the database.
+
 **This Service DOES**:
+- ✅ **OWN all vault filesystem operations** (read, write, parse, lock)
 - ✅ Watch file vault directory for changes (create, modify, delete)
 - ✅ Parse markdown files with YAML frontmatter
+- ✅ Write markdown files to vault (atomic operations)
+- ✅ Generate markdown templates for new items
 - ✅ Detect content changes (SHA256 hashing)
+- ✅ Implement file locking to prevent concurrent writes (between sync-service and cli)
 - ✅ Sync vault → database (POST/PUT/DELETE to API)
 - ✅ Sync database → vault (write markdown files)
 - ✅ Handle file conflicts (last-write-wins)
-- ✅ Implement file locking to prevent concurrent writes
 - ✅ Debounce rapid file changes
 - ✅ Run as background service
 
@@ -75,11 +82,19 @@ sync-service/
 │   ├── config.rs         # Configuration management
 │   ├── watcher.rs        # File system watching logic
 │   ├── sync.rs           # Synchronization logic
-│   ├── markdown.rs       # Markdown parsing/writing
-│   ├── lock.rs           # File locking mechanism
-│   ├── hash.rs           # Content hashing utilities
+│   ├── vault/            # Vault filesystem operations
+│   │   ├── mod.rs        # Module exports
+│   │   ├── parser.rs     # Markdown + frontmatter parser
+│   │   ├── writer.rs     # Markdown file writer
+│   │   ├── template.rs   # Markdown templates
+│   │   ├── lock.rs       # File locking (fs2)
+│   │   └── hash.rs       # Content hashing (SHA-256)
 │   └── api.rs            # API client
 ├── tests/                # Integration tests
+│   ├── vault/           # Vault module tests
+│   │   ├── test_parser.rs
+│   │   ├── test_writer.rs
+│   │   └── test_lock.rs
 │   ├── watcher_tests.rs
 │   └── sync_tests.rs
 ├── Cargo.toml           # Rust dependencies

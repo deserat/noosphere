@@ -46,12 +46,14 @@ This file provides context for AI coding assistants working on the Noosphere API
 - ✅ Background scheduling for surfacing jobs
 - ✅ Database schema management (Alembic migrations)
 - ✅ Health check endpoints for monitoring
-- ✅ Markdown file utilities (parse/write frontmatter)
+- ✅ Receive parsed item data from sync-service via REST API
 
 **This Service DOES NOT**:
+- ❌ Touch local filesystem or vault (stateless server)
+- ❌ Parse markdown files or frontmatter (sync-service responsibility)
+- ❌ Write markdown files to vault (sync-service responsibility)
 - ❌ Watch file system for vault changes (sync-service responsibility)
 - ❌ Provide TUI or CLI interface (CLI responsibility)
-- ❌ Store markdown files (vault is file-based)
 - ❌ Handle user authentication UI (CLI responsibility)
 
 ### Dependencies
@@ -59,7 +61,8 @@ This file provides context for AI coding assistants working on the Noosphere API
 **External Services**:
 - PostgreSQL database
 - AI API providers (Gemini, OpenAI, Anthropic)
-- File vault at `~/noosphere-vault` (optional, for development)
+
+**Note**: API service does NOT access `~/noosphere-vault/` directly. All vault operations are handled by sync-service (Rust).
 
 **Consumed By**:
 - CLI (Rust): Calls REST API endpoints
@@ -91,14 +94,10 @@ api-service/
 │   ├── crud/                # Database operations
 │   │   ├── item.py          # Item CRUD operations
 │   │   └── ...              # Other CRUD modules
-│   ├── services/            # Business logic
-│   │   ├── ai.py            # AI classification service
-│   │   ├── scheduler.py     # Background scheduler
-│   │   └── surfacing.py     # Surfacing logic (Phase 3)
-│   └── vault/               # Markdown utilities
-│       ├── parser.py        # YAML frontmatter parser
-│       ├── writer.py        # Markdown file writer
-│       └── template.py      # Markdown templates
+│   └── services/            # Business logic
+│       ├── ai.py            # AI classification service
+│       ├── scheduler.py     # Background scheduler
+│       └── surfacing.py     # Surfacing logic (Phase 3)
 ├── migrations/              # Alembic database migrations
 │   ├── env.py              # Alembic environment
 │   └── versions/           # Migration files
