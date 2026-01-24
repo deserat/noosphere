@@ -1,6 +1,6 @@
 // Integration tests for configuration loading
 
-use noosphere_sync::config::Config;
+use noosphere_sync::config::{Config, LogFormat, LogLevel};
 
 #[test]
 fn test_load_example_config() {
@@ -54,8 +54,16 @@ fn test_load_example_config() {
     );
 
     // Verify logging config
-    assert_eq!(config.logging.level, "info", "log level should be info");
-    assert_eq!(config.logging.format, "text", "log format should be text");
+    assert_eq!(
+        config.logging.level,
+        LogLevel::Info,
+        "log level should be info"
+    );
+    assert_eq!(
+        config.logging.format,
+        LogFormat::Text,
+        "log format should be text"
+    );
     assert_eq!(config.logging.max_size_mb, 10, "max_size_mb should be 10");
     assert_eq!(config.logging.max_backups, 5, "max_backups should be 5");
 }

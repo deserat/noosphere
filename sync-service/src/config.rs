@@ -52,13 +52,32 @@ pub struct SyncConfig {
     pub ignore_patterns: Vec<String>,
 }
 
+/// Log level enumeration
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum LogLevel {
+    Trace,
+    Debug,
+    Info,
+    Warn,
+    Error,
+}
+
+/// Log format enumeration
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum LogFormat {
+    Text,
+    Json,
+}
+
 /// Logging configuration
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct LoggingConfig {
     /// Log level: trace, debug, info, warn, error
-    pub level: String,
+    pub level: LogLevel,
     /// Log format: text (human-readable) or json (structured)
-    pub format: String,
+    pub format: LogFormat,
     /// Log file path
     pub file: PathBuf,
     /// Maximum log file size in megabytes before rotation
@@ -170,8 +189,8 @@ logging:
         assert_eq!(config.sync.ignore_patterns[0], "*.lock");
 
         // Verify logging config
-        assert_eq!(config.logging.level, "info");
-        assert_eq!(config.logging.format, "text");
+        assert_eq!(config.logging.level, LogLevel::Info);
+        assert_eq!(config.logging.format, LogFormat::Text);
         assert_eq!(config.logging.max_size_mb, 10);
         assert_eq!(config.logging.max_backups, 5);
     }
@@ -262,6 +281,70 @@ sync:
 logging:
   level: info
   format: text
+  file: logs/test.log
+  max_size_mb: 10
+  max_backups: 5
+"#;
+
+        let result: Result<Config, _> = serde_yaml::from_str(yaml);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_invalid_log_level() {
+        // Invalid log level should fail deserialization
+        let yaml = r#"
+vault:
+  path: ~/test-vault
+  watch_recursive: true
+  debounce_ms: 500
+
+api:
+  base_url: http://localhost:8000
+  timeout_ms: 5000
+  retry_attempts: 3
+  retry_delay_ms: 1000
+
+sync:
+  batch_size: 10
+  sync_interval_ms: 60000
+  ignore_patterns: []
+
+logging:
+  level: invalid
+  format: text
+  file: logs/test.log
+  max_size_mb: 10
+  max_backups: 5
+"#;
+
+        let result: Result<Config, _> = serde_yaml::from_str(yaml);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_invalid_log_format() {
+        // Invalid log format should fail deserialization
+        let yaml = r#"
+vault:
+  path: ~/test-vault
+  watch_recursive: true
+  debounce_ms: 500
+
+api:
+  base_url: http://localhost:8000
+  timeout_ms: 5000
+  retry_attempts: 3
+  retry_delay_ms: 1000
+
+sync:
+  batch_size: 10
+  sync_interval_ms: 60000
+  ignore_patterns: []
+
+logging:
+  level: info
+  format: invalid
   file: logs/test.log
   max_size_mb: 10
   max_backups: 5

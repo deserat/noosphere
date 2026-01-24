@@ -25,3 +25,8 @@ logs/
 # Local environment variables
 .env
 .env.local
+
+# Coverage reports
+lcov.info
+*.lcov
+/target/llvm-cov/
