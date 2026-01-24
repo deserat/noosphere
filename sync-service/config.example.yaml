@@ -1,0 +1,195 @@
+# Noosphere Sync Service Configuration
+#
+# This is the example configuration template. Copy this file to config.yaml
+# and customize for your environment.
+#
+# Setup: cp config.example.yaml config.yaml
+
+# ============================================================================
+# Vault Configuration
+# ============================================================================
+# File system vault settings for watching and syncing markdown files
+
+vault:
+  # Path to noosphere vault directory
+  # Supports ~ expansion (e.g., ~/noosphere-vault expands to /home/user/noosphere-vault)
+  #
+  # Development: Use ~/noosphere-vault for local testing
+  # Production: Use absolute path like /var/lib/noosphere/vault
+  path: ~/noosphere-vault
+
+  # Watch subdirectories recursively
+  # Set to true to watch all subdirectories for changes
+  # Set to false for flat directory structure only
+  #
+  # Recommended: true (allows category folders like Ideas/, Tasks/, etc.)
+  watch_recursive: true
+
+  # Debounce delay in milliseconds
+  # Wait this long after the last file change before triggering sync
+  # Prevents rapid-fire syncs during bulk operations (e.g., git pull)
+  #
+  # Range: 100-5000 ms
+  # Development: 500 (fast response for testing)
+  # Production: 1000 (reduces CPU usage, still responsive)
+  debounce_ms: 500
+
+# ============================================================================
+# API Client Configuration
+# ============================================================================
+# HTTP client settings for communicating with api-service
+
+api:
+  # Base URL of api-service
+  # Include protocol (http:// or https://) but no trailing slash
+  #
+  # Development: http://127.0.0.1:8000 (local api-service)
+  # Production: https://api.example.com (HTTPS required)
+  base_url: http://127.0.0.1:8000
+
+  # Request timeout in milliseconds
+  # How long to wait for API response before failing
+  #
+  # Range: 1000-30000 ms
+  # Recommended: 5000 (5 seconds)
+  timeout_ms: 5000
+
+  # Number of retry attempts on failure
+  # If API request fails, retry this many times before giving up
+  #
+  # Range: 0-10
+  # Recommended: 3 (reasonable retry count)
+  # Set to 0 to disable retries
+  retry_attempts: 3
+
+  # Delay between retries in milliseconds
+  # Wait this long between retry attempts
+  # Implements exponential backoff: delay * 2^attempt
+  #
+  # Range: 100-10000 ms
+  # Recommended: 1000 (1 second base delay)
+  retry_delay_ms: 1000
+
+# ============================================================================
+# Sync Behavior Configuration
+# ============================================================================
+# Controls how files are synchronized between vault and database
+
+sync:
+  # Number of files to process per batch
+  # When multiple files change, sync this many at a time
+  # Prevents overwhelming API with too many concurrent requests
+  #
+  # Range: 1-100
+  # Development: 10 (moderate batch size)
+  # Production: 20 (larger batches for efficiency)
+  batch_size: 10
+
+  # Periodic sync interval in milliseconds
+  # Run full vault scan and sync this often, even if no changes detected
+  # Ensures consistency if file events are missed
+  #
+  # Range: 10000-300000 ms (10 seconds to 5 minutes)
+  # Development: 60000 (1 minute - frequent syncs for testing)
+  # Production: 300000 (5 minutes - reduces load)
+  sync_interval_ms: 60000
+
+  # File patterns to ignore during sync
+  # Uses glob pattern matching (* = wildcard, ? = single char)
+  # Files matching these patterns are not synced to database
+  #
+  # Default patterns:
+  # - *.lock: File lock files (from file locking mechanism)
+  # - *.tmp: Temporary files
+  # - .DS_Store: macOS finder metadata
+  # - .noosphere-metadata: Internal vault metadata
+  ignore_patterns:
+    - "*.lock"
+    - "*.tmp"
+    - ".DS_Store"
+    - ".noosphere-metadata"
+
+# ============================================================================
+# Logging Configuration
+# ============================================================================
+# Structured logging settings using tracing crate
+
+logging:
+  # Log level
+  # Controls verbosity of log output
+  #
+  # Options (from most to least verbose):
+  # - trace: Very detailed, for debugging
+  # - debug: Detailed information for development
+  # - info: General information (default)
+  # - warn: Warnings only
+  # - error: Errors only
+  #
+  # Development: info (good balance)
+  # Production: warn (reduce log volume)
+  level: info
+
+  # Log format
+  # Controls how log messages are formatted
+  #
+  # Options:
+  # - text: Human-readable format (good for terminals)
+  # - json: Structured JSON format (good for log aggregation tools)
+  #
+  # Development: text (easier to read)
+  # Production: json (structured for parsing/analysis)
+  format: text
+
+  # Log file path
+  # Where to write log output
+  # Directory must exist or will be created
+  #
+  # Recommended: logs/sync-service.log
+  file: logs/sync-service.log
+
+  # Maximum log file size in megabytes
+  # When log file reaches this size, it's rotated
+  # Old file is renamed to sync-service.log.1, etc.
+  #
+  # Range: 1-1000 MB
+  # Recommended: 10 MB (good balance)
+  max_size_mb: 10
+
+  # Number of rotated log files to keep
+  # After rotation, keep this many backup files
+  # Oldest files are deleted when limit is reached
+  #
+  # Range: 1-50
+  # Recommended: 5 (keeps ~50MB of logs total at 10MB per file)
+  max_backups: 5
+
+# ============================================================================
+# Security Notes
+# ============================================================================
+#
+# - DO NOT commit config.yaml to git (contains user-specific paths)
+# - config.yaml is .gitignored by default
+# - This template (config.example.yaml) is tracked in git
+# - API authentication tokens should be set via environment variables
+#   (see Issue #15 for environment variable support)
+#
+# ============================================================================
+# Environment-Specific Configuration
+# ============================================================================
+#
+# Development:
+# - vault.debounce_ms: 500 (fast response)
+# - logging.level: info (verbose logging)
+# - logging.format: text (human-readable)
+# - api.base_url: http://127.0.0.1:8000 (local)
+# - sync.sync_interval_ms: 60000 (frequent syncs)
+#
+# Production:
+# - vault.debounce_ms: 1000 (reduce CPU)
+# - logging.level: warn (reduce log volume)
+# - logging.format: json (structured logs)
+# - api.base_url: https://api.example.com (HTTPS)
+# - sync.sync_interval_ms: 300000 (less frequent)
+# - sync.batch_size: 20 (larger batches)
+#
+# ============================================================================
