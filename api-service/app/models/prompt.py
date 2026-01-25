@@ -26,17 +26,13 @@ class Prompt(Base):
         comment="Unique prompt identifier",
     )
 
-    name: Mapped[str] = mapped_column(
-        nullable=False, comment="Prompt name (e.g., 'classify_item')"
-    )
+    name: Mapped[str] = mapped_column(nullable=False, comment="Prompt name (e.g., 'classify_item')")
 
     version: Mapped[str] = mapped_column(
         nullable=False, comment="Prompt version (e.g., 'v1.0', 'v2.0')"
     )
 
-    content: Mapped[str] = mapped_column(
-        nullable=False, comment="Prompt template content"
-    )
+    content: Mapped[str] = mapped_column(nullable=False, comment="Prompt template content")
 
     model_config: Mapped[Optional[dict]] = mapped_column(
         JSONB,
@@ -56,11 +52,7 @@ class Prompt(Base):
         comment="Prompt creation timestamp",
     )
 
-    __table_args__ = (
-        UniqueConstraint("name", "version", name="uq_prompt_name_version"),
-    )
+    __table_args__ = (UniqueConstraint("name", "version", name="uq_prompt_name_version"),)
 
     def __repr__(self) -> str:
-        return (
-            f"<Prompt(name={self.name}, version={self.version}, active={self.active})>"
-        )
+        return f"<Prompt(name={self.name}, version={self.version}, active={self.active})>"

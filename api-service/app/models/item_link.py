@@ -67,9 +67,7 @@ class ItemLink(Base):
         UniqueConstraint(
             "from_item_id", "to_item_id", "link_type", name="uq_item_link_from_to_type"
         ),
-        CheckConstraint(
-            "from_item_id != to_item_id", name="ck_item_link_no_self_links"
-        ),
+        CheckConstraint("from_item_id != to_item_id", name="ck_item_link_no_self_links"),
     )
 
     def __repr__(self) -> str:

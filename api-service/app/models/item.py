@@ -65,9 +65,7 @@ class Item(Base):
         comment="Unique item identifier",
     )
 
-    title: Mapped[str] = mapped_column(
-        String(500), nullable=False, comment="Item title"
-    )
+    title: Mapped[str] = mapped_column(String(500), nullable=False, comment="Item title")
 
     file_path: Mapped[str] = mapped_column(
         unique=True, nullable=False, comment="Vault file path (unique)"
@@ -184,9 +182,7 @@ class Item(Base):
 
     # ========== Constraints ==========
     __table_args__ = (
-        CheckConstraint(
-            "confidence >= 0 AND confidence <= 1", name="ck_item_confidence_range"
-        ),
+        CheckConstraint("confidence >= 0 AND confidence <= 1", name="ck_item_confidence_range"),
         # GIN index for array operations on tags
         Index("idx_items_tags", "tags", postgresql_using="gin"),
         # GIN index for full-text search
