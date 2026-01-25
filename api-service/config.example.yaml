@@ -1,0 +1,165 @@
+# =============================================================================
+# Noosphere API Service Configuration
+# =============================================================================
+#
+# This file contains configuration for the FastAPI backend service.
+# Copy this file to config.yaml and customize for your environment.
+#
+# Priority order (environment variables override YAML):
+#   1. Environment variables (DATABASE_URL, API_PORT, etc.)
+#   2. .env file values (loaded via python-dotenv)
+#   3. config.yaml values (this file)
+#   4. Hard-coded defaults in code
+#
+# Security: Never commit config.yaml or .env files to version control!
+# =============================================================================
+
+# Database Configuration
+# PostgreSQL connection and pool settings
+database:
+  # Database connection URL
+  # Format: postgresql://user:password@host:port/database
+  # Override: DATABASE_URL environment variable
+  url: postgresql://noosphere_user:dev_password@localhost:5432/noosphere
+
+  # Connection pool size (number of connections to maintain)
+  # Development: 5 (small pool for local development)
+  # Production: 20-50 (scale based on concurrent requests)
+  # Override: DB_POOL_SIZE environment variable
+  pool_size: 5
+
+  # Maximum overflow connections beyond pool_size
+  # Development: 10 (small overflow)
+  # Production: 20-100 (scale based on traffic spikes)
+  # Override: DB_MAX_OVERFLOW environment variable
+  max_overflow: 10
+
+  # Test connection before using (recommended for production)
+  pool_pre_ping: true
+
+  # Echo SQL statements to logs (useful for debugging)
+  # Development: false (set true to debug queries)
+  # Production: false (avoid log noise)
+  echo: false
+
+# Vault Configuration
+# Path to local markdown vault (used for development/testing only)
+# Note: API service is stateless and does not access vault directly in production
+vault:
+  # Vault directory path (supports ~ expansion and environment variables)
+  # Override: VAULT_PATH environment variable
+  path: ~/noosphere-vault
+
+# Scheduler Configuration
+# Background job settings for surfacing and maintenance tasks
+scheduler:
+  # Enable background scheduler
+  # Development: true (test surfacing jobs)
+  # Production: true (required for surfacing feature)
+  enabled: true
+
+  # Surfacing job interval in seconds
+  # Development: 86400 (24 hours - once per day)
+  # Production: 86400 (24 hours - daily surfacing)
+  # Override: SURFACING_INTERVAL_SECONDS environment variable
+  surfacing_interval_seconds: 86400
+
+  # Batch size for processing items
+  # Development: 50 (small batches)
+  # Production: 100-500 (larger batches for efficiency)
+  # Override: SCHEDULER_BATCH_SIZE environment variable
+  batch_size: 50
+
+# AI Configuration
+# Settings for AI-powered classification and embeddings
+ai:
+  # Classification settings (auto-categorize items)
+  classification:
+    # Model to use for classification
+    # Options: gemini-1.5-flash, gpt-4o-mini, claude-3-haiku
+    # Override: AI_MODEL environment variable
+    model: gemini-1.5-flash
+
+    # Temperature for classification (0.0 = deterministic, 1.0 = creative)
+    # Recommended: 0.1 (low temperature for consistent categories)
+    temperature: 0.1
+
+    # Maximum tokens in response
+    max_tokens: 256
+
+  # Embedding settings (semantic search)
+  embedding:
+    # Model for generating embeddings
+    # Options: text-embedding-004 (Google), text-embedding-3-small (OpenAI)
+    model: text-embedding-004
+
+    # Embedding vector dimension
+    # text-embedding-004: 768
+    # text-embedding-3-small: 1536
+    dimension: 768
+
+  # API keys (MUST be set via environment variables, not in this file!)
+  # Get your API keys from:
+  # - Gemini: https://aistudio.google.com/app/apikey
+  # - OpenAI: https://platform.openai.com/api-keys
+  # - Anthropic: https://console.anthropic.com/settings/keys
+  api_keys:
+    # Override: GEMINI_API_KEY environment variable (REQUIRED)
+    gemini: ${GEMINI_API_KEY}
+    # Override: OPENAI_API_KEY environment variable (optional)
+    openai: ${OPENAI_API_KEY}
+    # Override: ANTHROPIC_API_KEY environment variable (optional)
+    anthropic: ${ANTHROPIC_API_KEY}
+
+# Logging Configuration
+logging:
+  # Log level
+  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  # Development: INFO (general information)
+  # Production: WARNING (only warnings and errors)
+  # Override: LOG_LEVEL environment variable
+  level: INFO
+
+  # Log format
+  # Options: text (human-readable), json (structured logs for production)
+  # Development: text (easier to read)
+  # Production: json (better for log aggregation)
+  # Override: LOG_FORMAT environment variable
+  format: text
+
+  # Log file path (relative to api-service directory)
+  # Development: logs/api-service.log (local file)
+  # Production: Use centralized logging (CloudWatch, Datadog, etc.)
+  file: logs/api-service.log
+
+# API Server Configuration
+api:
+  # Host to bind to
+  # Development: 127.0.0.1 (localhost only)
+  # Production: 0.0.0.0 (all interfaces for Docker/K8s)
+  # Override: API_HOST environment variable
+  host: 127.0.0.1
+
+  # Port to listen on
+  # Development: 8000 (default FastAPI port)
+  # Production: 8000 (or configure load balancer)
+  # Override: API_PORT environment variable
+  port: 8000
+
+  # Debug mode (auto-reload on code changes)
+  # Development: true (useful for development)
+  # Production: false (never enable in production!)
+  # Override: API_DEBUG environment variable
+  debug: false
+
+  # CORS allowed origins (for frontend access)
+  # Development: localhost origins
+  # Production: Your production frontend URL
+  cors_origins:
+    - http://localhost:3000
+    - http://localhost:8000
+
+  # API version prefix
+  # All endpoints will be under /api/v1/*
+  api_prefix: /api
+  api_version: v1
