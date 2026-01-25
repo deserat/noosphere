@@ -36,6 +36,9 @@ pub struct FileLock {
 }
 
 impl FileLock {
+    /// Duration after which a lock is considered stale (5 minutes)
+    const STALE_LOCK_DURATION: Duration = Duration::from_secs(300);
+
     /// Create a new file lock for the given file path
     ///
     /// Lock files are created in `.noosphere/locks/` directory
@@ -164,6 +167,13 @@ impl FileLock {
                     return Ok(());
                 }
                 Err(_e) => {
+                    // Check if existing lock is stale and clean it up
+                    if self.is_stale()? {
+                        self.force_unlock()?;
+                        continue; // Retry immediately after cleaning stale lock
+                    }
+
+                    // Lock is not stale, check timeout
                     if start.elapsed()? > timeout {
                         anyhow::bail!("Lock timeout: failed to acquire lock within {:?}", timeout);
                     }
@@ -197,6 +207,54 @@ impl FileLock {
         if let Some(file) = self._guard.take() {
             file.unlock()?;
             fs::remove_file(&self.lock_file)?;
+        }
+        Ok(())
+    }
+
+    /// Check if the lock file is stale (older than 5 minutes)
+    ///
+    /// A stale lock indicates that the process holding the lock has died
+    /// or is otherwise unable to release it properly.
+    ///
+    /// # Returns
+    ///
+    /// `Ok(true)` if lock file exists and is older than 5 minutes
+    /// `Ok(false)` if lock file doesn't exist or is recent
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if unable to read file metadata or system time
+    fn is_stale(&self) -> Result<bool> {
+        // If lock file doesn't exist, it's not stale
+        if !self.lock_file.exists() {
+            return Ok(false);
+        }
+
+        // Get file metadata to check modification time
+        let metadata = fs::metadata(&self.lock_file)?;
+        let modified = metadata.modified()?;
+        let age = SystemTime::now().duration_since(modified)?;
+
+        // Consider lock stale if older than threshold
+        Ok(age > Self::STALE_LOCK_DURATION)
+    }
+
+    /// Force removal of a stale lock file
+    ///
+    /// Attempts to remove the lock file. If the file doesn't exist,
+    /// this is considered success (desired state achieved).
+    ///
+    /// Should only be called after confirming the lock is stale via `is_stale()`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error only for actual I/O failures (permission denied, etc.).
+    /// Returns `Ok(())` if the file is already removed.
+    fn force_unlock(&self) -> Result<()> {
+        if let Err(e) = fs::remove_file(&self.lock_file) {
+            if e.kind() != std::io::ErrorKind::NotFound {
+                return Err(e.into());
+            }
         }
         Ok(())
     }
@@ -313,6 +371,37 @@ mod tests {
         // Should be able to acquire lock again
         let mut lock2 = FileLock::new(temp_file.path())?;
         lock2.acquire(Duration::from_secs(1))?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_stale_lock_cleanup() -> Result<()> {
+        use filetime::{set_file_mtime, FileTime};
+
+        let mut temp_file = NamedTempFile::new()?;
+        write!(temp_file, "Test content")?;
+        temp_file.flush()?;
+
+        let mut lock = FileLock::new(temp_file.path())?;
+
+        // Create a stale lock file manually (simulating abandoned lock)
+        File::create(&lock.lock_file)?;
+
+        // Set modification time to 6 minutes ago (beyond 5-minute stale threshold)
+        let six_min_ago = SystemTime::now()
+            .checked_sub(Duration::from_secs(360))
+            .unwrap();
+        set_file_mtime(&lock.lock_file, FileTime::from_system_time(six_min_ago))?;
+
+        // Verify lock is detected as stale
+        assert!(lock.is_stale()?);
+
+        // Should successfully acquire lock despite existing stale lock file
+        lock.acquire(Duration::from_secs(1))?;
+
+        // Lock should now be held
+        assert!(lock._guard.is_some());
 
         Ok(())
     }
