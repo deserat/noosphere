@@ -16,7 +16,9 @@ echo
 # Load environment variables
 if [ -f .env ]; then
     echo "✓ Loading environment variables from .env..."
-    export $(grep -v '^#' .env | xargs)
+    set -a  # Automatically export all variables
+    source .env
+    set +a  # Disable auto-export
 else
     echo "⚠ Warning: .env file not found. Using system environment variables only."
 fi

@@ -47,7 +47,7 @@ def test_health_endpoint_database_unhealthy(client):
         ):
             response = client.get("/health")
 
-            assert response.status_code == 200
+            assert response.status_code == 503
             data = response.json()
             assert data["status"] == "degraded"
             assert data["database"] is False
@@ -62,7 +62,7 @@ def test_health_endpoint_scheduler_not_running(client):
         ):
             response = client.get("/health")
 
-            assert response.status_code == 200
+            assert response.status_code == 503
             data = response.json()
             assert data["status"] == "degraded"
             assert data["database"] is True
@@ -77,7 +77,7 @@ def test_health_endpoint_all_unhealthy(client):
         ):
             response = client.get("/health")
 
-            assert response.status_code == 200
+            assert response.status_code == 503
             data = response.json()
             assert data["status"] == "degraded"
             assert data["database"] is False
@@ -95,11 +95,11 @@ def test_ready_endpoint_when_ready(client):
 
 
 def test_ready_endpoint_when_not_ready(client):
-    """Test /health/ready returns 200 with ready=false when database is down."""
+    """Test /health/ready returns 503 with ready=false when database is down."""
     with patch("app.api.endpoints.health.check_database_health", return_value=False):
         response = client.get("/health/ready")
 
-        assert response.status_code == 200
+        assert response.status_code == 503
         data = response.json()
         assert data["ready"] is False
 

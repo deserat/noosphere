@@ -7,6 +7,7 @@ Uses AsyncIOScheduler for compatibility with FastAPI's async event loop.
 import logging
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.base import STATE_STOPPED
 
 from app.core.config import get_config
 
@@ -63,12 +64,8 @@ def start_scheduler() -> None:
 
         # Get configuration values
         surfacing_interval = scheduler_config.get("surfacing_interval_seconds", 86400)
-        batch_size = scheduler_config.get("batch_size", 50)
 
-        logger.info(
-            f"Initializing scheduler with surfacing interval: {surfacing_interval}s, "
-            f"batch size: {batch_size}"
-        )
+        logger.info(f"Initializing scheduler with surfacing interval: {surfacing_interval}s")
 
         # Schedule surfacing job (interval trigger)
         scheduler.add_job(
@@ -128,7 +125,7 @@ def get_scheduler_status() -> str:
     """
     if scheduler.running:
         return "running"
-    elif scheduler.state == 0:  # STATE_STOPPED
+    elif scheduler.state == STATE_STOPPED:
         return "stopped"
     else:
         return "not_initialized"

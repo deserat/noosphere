@@ -7,8 +7,10 @@ Provides three endpoints:
 """
 
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
+from app import __version__
 from app.db.session import check_database_health
 from app.services.scheduler import get_scheduler_status
 
@@ -50,20 +52,21 @@ async def health():
     scheduler_status = get_scheduler_status()
 
     # Determine overall status
-    overall_status = "healthy" if db_healthy and scheduler_status == "running" else "degraded"
+    is_healthy = db_healthy and scheduler_status == "running"
+    overall_status = "healthy" if is_healthy else "degraded"
 
-    response = HealthResponse(
-        status=overall_status,
-        database=db_healthy,
-        scheduler=scheduler_status,
-        version="0.1.0",
-    )
+    response_data = {
+        "status": overall_status,
+        "database": db_healthy,
+        "scheduler": scheduler_status,
+        "version": __version__,
+    }
 
     # Return 503 if any component is unhealthy
-    if not db_healthy or scheduler_status != "running":
-        return response
+    if not is_healthy:
+        return JSONResponse(status_code=503, content=response_data)
 
-    return response
+    return response_data
 
 
 @router.get(
@@ -86,10 +89,12 @@ async def ready():
     # Check database connection - critical for readiness
     db_healthy = check_database_health()
 
-    if not db_healthy:
-        return ReadyResponse(ready=False)
+    response_data = {"ready": db_healthy}
 
-    return ReadyResponse(ready=True)
+    if not db_healthy:
+        return JSONResponse(status_code=503, content=response_data)
+
+    return response_data
 
 
 @router.get(

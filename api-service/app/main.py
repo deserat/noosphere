@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app import __version__
 from app.api.endpoints import health, items
 from app.core.config import get_config, load_config
 from app.db.session import connect_with_retry
@@ -21,6 +22,11 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+# Default configuration values
+DEFAULT_CORS_ORIGINS = ["http://localhost:3000"]
+DEFAULT_API_PREFIX = "/api"
+DEFAULT_API_VERSION = "v1"
 
 
 @asynccontextmanager
@@ -85,21 +91,21 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Noosphere API",
     description="Knowledge management system with spaced repetition and AI classification",
-    version="0.1.0",
+    version=__version__,
     lifespan=lifespan,
 )
 
 # Load configuration for middleware setup (with fallback for tests)
 try:
     config = get_config()
-    cors_origins = config.api.get("cors_origins", ["http://localhost:3000"])
-    api_prefix = config.api.get("api_prefix", "/api")
-    api_version = config.api.get("api_version", "v1")
+    cors_origins = config.api.get("cors_origins", DEFAULT_CORS_ORIGINS)
+    api_prefix = config.api.get("api_prefix", DEFAULT_API_PREFIX)
+    api_version = config.api.get("api_version", DEFAULT_API_VERSION)
 except RuntimeError:
     # Config not loaded yet (e.g., during test imports) - use defaults
-    cors_origins = ["http://localhost:3000"]
-    api_prefix = "/api"
-    api_version = "v1"
+    cors_origins = DEFAULT_CORS_ORIGINS
+    api_prefix = DEFAULT_API_PREFIX
+    api_version = DEFAULT_API_VERSION
 
 # Add CORS middleware
 app.add_middleware(
@@ -132,7 +138,7 @@ async def root():
     """
     return {
         "service": "Noosphere API",
-        "version": "0.1.0",
+        "version": __version__,
         "docs": "/docs",
         "health": "/health",
         "api": f"{api_prefix}/{api_version}",
