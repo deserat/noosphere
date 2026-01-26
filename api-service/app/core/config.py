@@ -120,9 +120,7 @@ class Config:
         try:
             return int(value)
         except ValueError as e:
-            raise ValueError(
-                f"Invalid value for {env_var}: '{value}'. Must be an integer."
-            ) from e
+            raise ValueError(f"Invalid value for {env_var}: '{value}'. Must be an integer.") from e
 
     def _set_nested(self, path: str, value: Any) -> None:
         """Set nested configuration value using dot notation path.

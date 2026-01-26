@@ -88,3 +88,29 @@ def item(session, user):
     session.commit()
     session.refresh(test_item)
     return test_item
+
+
+@pytest.fixture
+def reset_singleton():
+    """Reset scheduler singleton state between tests."""
+    from app.services.scheduler import scheduler
+
+    # Reset scheduler state before test
+    try:
+        if scheduler.running:
+            scheduler.shutdown(wait=False)
+        scheduler.remove_all_jobs()
+    except AttributeError:
+        # Scheduler not initialized or event loop is None
+        pass
+
+    yield
+
+    # Clean up after test
+    try:
+        if scheduler.running:
+            scheduler.shutdown(wait=False)
+        scheduler.remove_all_jobs()
+    except AttributeError:
+        # Scheduler not initialized or event loop is None
+        pass
